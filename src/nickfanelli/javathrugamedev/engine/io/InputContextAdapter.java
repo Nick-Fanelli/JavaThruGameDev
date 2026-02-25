@@ -1,6 +1,6 @@
 package nickfanelli.javathrugamedev.engine.io;
 
-import nickfanelli.javathrugamedev.engine.utils.Vector2f;
+import nickfanelli.javathrugamedev.engine.math.Vector2f;
 
 public class InputContextAdapter {
 

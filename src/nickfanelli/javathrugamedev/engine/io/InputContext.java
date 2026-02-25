@@ -1,8 +1,7 @@
 package nickfanelli.javathrugamedev.engine.io;
 
-import nickfanelli.javathrugamedev.engine.utils.Vector2f;
+import nickfanelli.javathrugamedev.engine.math.Vector2f;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
