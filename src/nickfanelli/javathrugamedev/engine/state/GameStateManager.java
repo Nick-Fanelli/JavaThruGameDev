@@ -1,5 +1,7 @@
 package nickfanelli.javathrugamedev.engine.state;
 
+import nickfanelli.javathrugamedev.engine.graphics.GameApplication;
+
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
@@ -7,9 +9,10 @@ public class GameStateManager {
 
     private GameState activeState = null;
 
-    public <T extends GameState> void setState(Class<T> stateClass) throws Exception {
+    public <T extends GameState> void setState(Class<T> stateClass, GameApplication requestingApplication) throws Exception {
 
-        T newState = stateClass.getDeclaredConstructor().newInstance();
+        StateApplicationAdapter adapter = new StateApplicationAdapter(requestingApplication);
+        T newState = stateClass.getDeclaredConstructor(StateApplicationAdapter.class).newInstance(adapter);
 
         // End current state
         if (this.activeState != null) {

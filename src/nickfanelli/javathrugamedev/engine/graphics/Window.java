@@ -105,4 +105,7 @@ public class Window {
 
     public int getWindowWidth() { return canvas.getWidth(); }
     public int getWindowHeight() { return canvas.getHeight(); }
+
+    public JFrame getFrame() { return this.frame; }
+    public Canvas getCanvas() { return this.canvas; }
 }

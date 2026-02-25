@@ -1,12 +1,12 @@
 package nickfanelli.javathrugamedev.engine.graphics;
 
+import nickfanelli.javathrugamedev.engine.io.InputContext;
 import nickfanelli.javathrugamedev.engine.state.GameState;
 import nickfanelli.javathrugamedev.engine.state.GameStateManager;
 
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
 
-public class GameApplication implements Runnable {
+public class GameApplication <T extends GameState> implements Runnable {
 
     private static final int TARGET_FPS = 120;
     private static final double FRAME_TIME = 1.0 / TARGET_FPS;
@@ -14,17 +14,23 @@ public class GameApplication implements Runnable {
     private final Thread gameThread;
     private final Window window;
     private final GameStateManager gameStateManager;
+    private final Class<T> initialState;
+
+    private InputContext inputContext;
 
     private boolean isRunning;
     private int currentFps;
 
     private String windowTitle;
 
-    public GameApplication(String title, int width, int height) {
+    public GameApplication(String title, int width, int height, Class<T> initialState) {
 
         this.gameThread = new Thread(this, "GameThread");
         this.window = new Window(width, height);
         this.gameStateManager = new GameStateManager();
+        this.initialState = initialState;
+
+        this.setGameState(initialState);
 
         this.windowTitle = title;
 
@@ -35,6 +41,7 @@ public class GameApplication implements Runnable {
             return;
 
         this.window.create(this.windowTitle);
+        this.inputContext = new InputContext(this.window.getCanvas());
 
         this.isRunning = true;
         this.gameThread.start();
@@ -46,6 +53,8 @@ public class GameApplication implements Runnable {
 
     @Override
     public void run() {
+
+        this.setGameState(this.initialState);
 
         double lastTime = System.nanoTime() / 1_000_000_000.0;
         double accumulator = 0.0;
@@ -91,6 +100,7 @@ public class GameApplication implements Runnable {
 
     private synchronized void update(float deltaTime) {
         this.gameStateManager.update(deltaTime);
+        this.inputContext.update();
     }
 
     private synchronized void render(Graphics2D g) {
@@ -99,10 +109,12 @@ public class GameApplication implements Runnable {
 
     public <T extends GameState> void setGameState(Class<T> stateClass) {
         try {
-            this.gameStateManager.setState(stateClass);
+            this.gameStateManager.setState(stateClass, this);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+    public InputContext getInputContext() { return this.inputContext; }
 
 }
