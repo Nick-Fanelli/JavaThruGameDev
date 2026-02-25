@@ -1,14 +1,19 @@
 package nickfanelli.javathrugamedev.engine.graphics;
 
-import java.awt.*;
+import nickfanelli.javathrugamedev.engine.state.GameState;
+import nickfanelli.javathrugamedev.engine.state.GameStateManager;
 
-public abstract class GameApplication implements Runnable {
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+
+public class GameApplication implements Runnable {
 
     private static final int TARGET_FPS = 120;
     private static final double FRAME_TIME = 1.0 / TARGET_FPS;
 
     private final Thread gameThread;
-    protected final Window window;
+    private final Window window;
+    private final GameStateManager gameStateManager;
 
     private boolean isRunning;
     private int currentFps;
@@ -17,8 +22,10 @@ public abstract class GameApplication implements Runnable {
 
     public GameApplication(String title, int width, int height) {
 
-        this.window = new Window(width, height);
         this.gameThread = new Thread(this, "GameThread");
+        this.window = new Window(width, height);
+        this.gameStateManager = new GameStateManager();
+
         this.windowTitle = title;
 
     }
@@ -55,11 +62,13 @@ public abstract class GameApplication implements Runnable {
             fpsTimer += delta;
 
             while (accumulator >= FRAME_TIME) {
-                update((float) FRAME_TIME);
+                this.update((float) delta);
                 accumulator -= FRAME_TIME;
             }
 
-            render();
+            Graphics2D g = this.window.beginFrame();
+            this.render(g);
+            g.dispose();
             this.window.endFrame();
 
             frames++;
@@ -77,16 +86,23 @@ public abstract class GameApplication implements Runnable {
         }
 
         window.dispose();
+        this.gameStateManager.end();
     }
 
-    private void render() {
-        Graphics2D g = window.beginFrame();
-
-        render(g);
-
-        g.dispose();
+    private synchronized void update(float deltaTime) {
+        this.gameStateManager.update(deltaTime);
     }
 
-    protected abstract void update(float deltaTime);
-    protected abstract void render(Graphics2D g);
+    private synchronized void render(Graphics2D g) {
+        this.gameStateManager.render(g);
+    }
+
+    public <T extends GameState> void setGameState(Class<T> stateClass) {
+        try {
+            this.gameStateManager.setState(stateClass);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
